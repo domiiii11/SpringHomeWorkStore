@@ -1,0 +1,16 @@
+lt:
+  sda:
+    store:
+      prices:
+        apple-price: 6.99
+        orange-price: 4.39
+        carrot-price: 2.99
+        potato-price: 0.99
+lv:
+  sda:
+    store:
+      quantities:
+        apple-quantity: 50d
+        orange-quantity: 15d
+        carrot-quantity: 17d
+        potato-quantity: 13d
