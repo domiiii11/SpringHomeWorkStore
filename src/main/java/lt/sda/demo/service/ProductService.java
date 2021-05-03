@@ -1,42 +1,37 @@
 package lt.sda.demo.service;
 
 
+import lt.sda.demo.repo.ProductPriceRepo;
+import lt.sda.demo.repo.ProductRepo;
 import lt.sda.demo.validator.ValidateQuantities;
 import lt.sda.demo.model.ProductType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class ProductService {
 
-    Map<ProductType, Double> allProductsPrices;
-    Map<ProductType, Double> allProductsQuantity;
+    private ProductPriceRepo pr
     ValidateQuantities validateQuantities;
 
     @Autowired
-    public ProductService(Map<ProductType, Double> allProductsPrices, Map<ProductType, Double> allProductsQuantity, ValidateQuantities validateQuantities) {
-        this.allProductsPrices = allProductsPrices;
-        this.allProductsQuantity = allProductsQuantity;
-        this.validateQuantities = validateQuantities;
+    public ProductService(ProductRepo productRepo) {
+        this.productRepo = productRepo;
     }
 
-
-    public Map<ProductType, Double> getAllProducts() {
-        return allProductsPrices;
+    public List<ProductType> getAllProducts() {
+        return productRepo.findAll();
     }
 
     public Double getPrice(ProductType product) {
-        return allProductsPrices.get(product);
+        return productRepo.getPrice(product);
     }
 
     public Double getQuantity(ProductType product) {
-        return allProductsQuantity.get(product);
-    }
-
-    public Double setQuantity(ProductType productType, Double value) {
-        return allProductsQuantity.replace(productType, value);
+        return productRepo.getQuantity(product);
     }
 
 
@@ -55,7 +50,7 @@ public class ProductService {
             value = getQuantity(entry.getKey()) - entry.getValue();
             setQuantity(entry.getKey(), value);
         }
-        return allProductsQuantity;
+        return basket;
     }
 }
 
