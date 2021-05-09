@@ -1,16 +1,15 @@
-lt:
-  sda:
-    store:
-      prices:
-        apple-price: 6.99
-        orange-price: 4.39
-        carrot-price: 2.99
-        potato-price: 0.99
-lv:
-  sda:
-    store:
-      quantities:
-        apple-quantity: 50d
-        orange-quantity: 15d
-        carrot-quantity: 17d
-        potato-quantity: 13d
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  datasource:
+    url: jdbc:h2:file:~/test
+    username: sa
+    password:
+    driverClassName: org.h2.Driver
+    initializaiton-mode: always
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop

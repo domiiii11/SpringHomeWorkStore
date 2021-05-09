@@ -1,54 +1,75 @@
 package lt.sda.demo.service;
 
 
+import lt.sda.demo.model.Price;
+import lt.sda.demo.model.Stock;
 import lt.sda.demo.repo.ProductPriceRepo;
-import lt.sda.demo.repo.ProductRepo;
+import lt.sda.demo.repo.ProductStockRepo;
 import lt.sda.demo.validator.ValidateQuantities;
 import lt.sda.demo.model.ProductType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
 
-    private ProductPriceRepo pr
-    ValidateQuantities validateQuantities;
+    private ProductPriceRepo productPriceRepo;
+    private ProductStockRepo productStockRepo;
+    private ValidateQuantities validateQuantities;
 
-    @Autowired
-    public ProductService(ProductRepo productRepo) {
-        this.productRepo = productRepo;
+
+   @Autowired
+   public ProductService(ProductPriceRepo productPriceRepo, ProductStockRepo productStockRepo, ValidateQuantities validateQuantities) {
+        this.productPriceRepo = productPriceRepo;
+        this.productStockRepo = productStockRepo;
+        this.validateQuantities = validateQuantities;
     }
+
+
 
     public List<ProductType> getAllProducts() {
-        return productRepo.findAll();
+        return productPriceRepo.findAll()
+                .stream()
+                .map(Price::getProductType)
+                .collect(Collectors.toList());
+
     }
 
-    public Double getPrice(ProductType product) {
-        return productRepo.getPrice(product);
+    public Double getPrice(ProductType productType) {
+       Double price = productPriceRepo.findPriceByProductType(productType).getPrice();
+        return price;
     }
 
-    public Double getQuantity(ProductType product) {
-        return productRepo.getQuantity(product);
+    public Double getQuantity(ProductType productType) {
+        Stock stock = productStockRepo.findStockByProductType(productType);
+        return stock.getStock();
     }
 
 
-    public Double getBasketPrice(Map<ProductType, Double> basket)  {
+    public Double getBasketPrice(Map<ProductType, Double> basket) {
         validateQuantities.checkIfEnoughProducts(basket);
         Double total = 0d;
-            for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
-                total += getPrice(entry.getKey()) * entry.getValue();
-            }
+        Double price;
+        for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
+        price = getPrice(entry.getKey());
+             total += price * entry.getValue();
+        }
         return total;
     }
 
     public Map<ProductType, Double> buyProducts(Map<ProductType, Double> basket) {
-        Double value = 0d;
+        Stock product;
+        Double value;
         for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
-            value = getQuantity(entry.getKey()) - entry.getValue();
-            setQuantity(entry.getKey(), value);
+            product = productStockRepo.findStockByProductType(entry.getKey());
+            value =  product.getStock() - entry.getValue();
+            System.out.println(value);
+            productStockRepo.updateStock(value, entry.getKey());
         }
         return basket;
     }

@@ -1,6 +1,8 @@
 package lt.sda.demo.validator;
 
 import lt.sda.demo.model.ProductType;
+import lt.sda.demo.model.Stock;
+import lt.sda.demo.repo.ProductStockRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -13,19 +15,19 @@ import java.util.Map;
 public class ValidateQuantities {
 
 
-    Map<ProductType, Double> allProductsQuantity;
+    ProductStockRepo productStockRepo;
 
     @Autowired
-    public ValidateQuantities(Map<ProductType, Double> allProductsQuantity) {
-        this.allProductsQuantity = allProductsQuantity;
+    public ValidateQuantities(ProductStockRepo productStockRepo) {
+        this.productStockRepo = productStockRepo;
     }
 
 
     public void checkIfEnoughProducts(Map<ProductType, Double> basket) {
 
         for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
-
-            if ((allProductsQuantity.get(entry.getKey())) < (entry.getValue())) {
+            Double stock = productStockRepo.findStockByProductType(entry.getKey()).getStock();
+            if (stock  < (entry.getValue())) {
                 throw new ValidateQuantityException("There is no enough fruits in warehouse.");
             }
         }

@@ -3,23 +3,23 @@ package lt.sda.demo.controler;
 import lt.sda.demo.model.ProductType;
 import lt.sda.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/products")
-public class ProductControler {
-
-    private ProductService productService;
+@Component
+public class ProductController {
 
     @Autowired
-    public ProductControler(ProductService productService) {
-        this.productService = productService;
-    }
+    private ProductService productService;
+
 
     @GetMapping
-    public Map<ProductType, Double> getAllProducts(){
+    public List<ProductType> getAllProducts(){
         return productService.getAllProducts();
 
     }
@@ -33,7 +33,7 @@ public class ProductControler {
        return productService.getBasketPrice(basket);
     }
 
-    @GetMapping(value="/buy")
+    @PutMapping (value="/buy")
     public Map<ProductType, Double> buyProducts(@RequestBody Map<ProductType, Double> basket){
         return productService.buyProducts(basket);
     }
