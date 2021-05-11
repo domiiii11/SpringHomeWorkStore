@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 public class ProductService {
 
@@ -23,25 +25,24 @@ public class ProductService {
     private ValidateQuantities validateQuantities;
 
 
-   @Autowired
-   public ProductService(ProductPriceRepo productPriceRepo, ProductStockRepo productStockRepo, ValidateQuantities validateQuantities) {
+    @Autowired
+    public ProductService(ProductPriceRepo productPriceRepo, ProductStockRepo productStockRepo, ValidateQuantities validateQuantities) {
         this.productPriceRepo = productPriceRepo;
         this.productStockRepo = productStockRepo;
         this.validateQuantities = validateQuantities;
     }
 
 
-
     public List<ProductType> getAllProducts() {
         return productPriceRepo.findAll()
                 .stream()
                 .map(Price::getProductType)
-                .collect(Collectors.toList());
+                .collect(toList());
 
     }
 
     public Double getPrice(ProductType productType) {
-       Double price = productPriceRepo.findPriceByProductType(productType).getPrice();
+        Double price = productPriceRepo.findPriceByProductType(productType).getPrice();
         return price;
     }
 
@@ -56,22 +57,40 @@ public class ProductService {
         Double total = 0d;
         Double price;
         for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
-        price = getPrice(entry.getKey());
-             total += price * entry.getValue();
+            price = getPrice(entry.getKey());
+            total += price * entry.getValue();
         }
         return total;
     }
 
     public Map<ProductType, Double> buyProducts(Map<ProductType, Double> basket) {
-        Stock product;
-        Double value;
-        for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
-            product = productStockRepo.findStockByProductType(entry.getKey());
-            value =  product.getStock() - entry.getValue();
-            System.out.println(value);
-            productStockRepo.updateStock(value, entry.getKey());
-        }
+        validateQuantities.checkIfEnoughProducts(basket);
+        List<Stock> updatedStocks = basket.entrySet().stream()
+                .map(pair -> extractStock(pair.getKey(), pair.getValue()))
+                .collect(toList());
+        productStockRepo.saveAll(updatedStocks);
         return basket;
     }
+
+    private Stock extractStock(ProductType stockType, double valueToBuy) {
+        Stock stock = productStockRepo.findStockByProductType(stockType);
+        double value = stock.getStock() - valueToBuy;
+        stock.setStock(value);
+        return stock;
+    }
 }
+
+//    public Map<ProductType, Double> buyProducts(Map<ProductType, Double> basket) {
+//        Stock product;
+//        Double value;
+//        for (Map.Entry<ProductType, Double> entry : basket.entrySet()) {
+//            product = productStockRepo.findStockByProductType(entry.getKey());
+//            value =  product.getStock() - entry.getValue();
+//            System.out.println(value);
+//            productStockRepo.updateStock(value, entry.getKey());
+//        }
+//        return basket;
+//    }
+//}
+//
 
